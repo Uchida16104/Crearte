@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Action Recognizer</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://unpkg.com/hydra-synth"></script>
+</head>
+<body>
+  <canvas id="myCanvas" width="640" height="640"></canvas>
+  <script>
+    const hydra = new Hydra({
+      canvas: document.getElementById("myCanvas"),
+      detectAudio: false
+    });
+    main();
+    async function main() {
+      const loadScript = (url) => new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = url;
+        s.onload = res;
+        s.onerror = rej;
+        document.head.appendChild(s);
+      });
+      await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js");
+      await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js");
+      await loadScript("https://cdn.jsdelivr.net/npm/tone/build/Tone.min.js");
+      s0.initCam();
+      setResolution(640, 480);
+      src(s0).out();
+      const flags = {};
+      function createSynth() {
+        const synth = new Tone.Synth({
+          oscillator: { type: "triangle" },
+          envelope: { attack: 0.05, decay: 0.1, sustain: 0.3, release: 1 }
+        });
+        const filter = new Tone.Filter(800, "lowpass", -12);
+        synth.connect(filter);
+        filter.toDestination();
+        return { synth, filter };
+      }
+      const synths = [createSynth(), createSynth(), createSynth()];
+      const video = document.createElement('video');
+      video.style.display = 'none';
+      document.body.appendChild(video);
+      const hol = new Holistic({
+        locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${f}`
+      });
+      hol.setOptions({
+        modelComplexity: 1,
+        smoothLandmarks: true,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+      });
+      hol.onResults(onResults);
+
+      const cam = new Camera(video, {
+        onFrame: async () => await hol.send({ image: video }),
+        width: 640, height: 480
+      });
+      cam.start();
+      function calcAngle(a, b, c) {
+        const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
+        const ab = dist(a, b), bc = dist(b, c), ac = dist(a, c);
+        if (ab * bc === 0) return 0;
+        const angle = Math.acos((ab ** 2 + bc ** 2 - ac ** 2) / (2 * ab * bc));
+        return angle * 180 / Math.PI;
+      }
+      function onResults(results) {
+        const pose = results.poseLandmarks || [];
+        const face = results.faceLandmarks || [];
+        flags.noseY = face.length ? face[1].y : 0;
+        flags.mouthOpen = face.length ? Math.hypot(face[13].y - face[14].y, face[13].x - face[14].x) > 0.03 : false;
+        flags.eyeDist = face.length ? Math.hypot(face[33].x - face[263].x, face[33].y - face[263].y) : 0;
+        flags.leftEyebrowY = face.length ? face[70].y : 0;
+        flags.rightEyebrowY = face.length ? face[300].y : 0;
+        flags.handCount = (results.leftHandLandmarks?.length || 0) + (results.rightHandLandmarks?.length || 0);
+        if (pose.length >= 15) {
+          flags.leftArmAngle = calcAngle(pose[11], pose[13], pose[15]);
+          flags.rightArmAngle = calcAngle(pose[12], pose[14], pose[16]);
+        }
+        if (pose.length >= 29) {
+          flags.leftKneeAngle = calcAngle(pose[23], pose[25], pose[27]);
+          flags.rightKneeAngle = calcAngle(pose[24], pose[26], pose[28]);
+        }
+        if (pose.length >= 25) {
+          const midShoulder = {
+            x: (pose[11].x + pose[12].x) / 2,
+            y: (pose[11].y + pose[12].y) / 2
+          };
+          const midHip = {
+            x: (pose[23].x + pose[24].x) / 2,
+            y: (pose[23].y + pose[24].y) / 2
+          };
+          flags.spineAngle = calcAngle(pose[11], midShoulder, midHip);
+        }
+        flags.bodySpread = pose.length ? pose[11].x - pose[12].x : 0;
+      }
+      function viz() {
+        let fx = src(s0)
+          .kaleid(1 + Math.floor(flags.leftArmAngle / 30))
+          .scrollX(Math.sin(flags.leftKneeAngle * Math.PI / 180) * 0.5)
+          .colorama(flags.spineAngle / 180)
+          .posterize(Math.min(10, 2 + Math.floor(flags.handCount / 5)))
+          .thresh(flags.mouthOpen ? 0.5 : 0)
+          .rotate(flags.bodySpread * Math.PI)
+          .brightness(flags.eyeDist * 2);
+        fx.out();
+      }
+      function sound() {
+        const baseFreq = 200 + flags.noseY * 600;
+        const dur = flags.mouthOpen ? "8n" : "16n";
+        synths.forEach((obj, i) => {
+          const armAngle = i === 0 ? flags.leftArmAngle : flags.rightArmAngle;
+          const kneeAngle = i === 0 ? flags.leftKneeAngle : flags.rightKneeAngle;
+          obj.filter.frequency.value = 500 + armAngle * 10;
+          obj.synth.envelope.release = 0.03 + (kneeAngle / 180) * 0.3;
+          obj.synth.triggerAttackRelease(baseFreq * (1 + i * 0.1), dur);
+        });
+      }
+      setInterval(() => {
+        viz();
+        Tone.start().then(() => sound());
+      }, 200);
+    }
+  </script>
+</body>
+</html>
