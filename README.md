@@ -25,4 +25,7 @@ Crearte is software that helps to create musical scores using music generated fr
 13. ``` python3 crearte/converter/convert_midi_to_txt.py ```
 14. perform with crearte/player/player.scd, hydra-processing-bridge/index.html, and score_output.mid.
 
+## Completed output file image
+![Score](https://github.com/Uchida16104/Crearte/blob/5858fa8e0603a74b2438edc931317dc218e898a5/output_full_score.png "Score")
+
 Hirotoshi Uchida
