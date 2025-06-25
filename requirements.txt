@@ -1,0 +1,5 @@
+soundfile
+opencv-python
+librosa
+numpy
+mido 
