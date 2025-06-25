@@ -1,5 +1,4 @@
 # Crearte
-![Crearte](Crearte.png "Crearte")
 Crearte is software that helps to create musical scores using music generated from images and poems. The etymology of Crearte comes from the combination of "create" and "art".The directory contains sample .mid files, .wav files, .png files, and .txt files.
 
 ## Requirements
