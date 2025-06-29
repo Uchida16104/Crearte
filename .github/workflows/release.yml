@@ -35,18 +35,16 @@ jobs:
       - name: Create Winget YAML
         run: |
           mkdir -p winget
-          cat <<EOF > winget/crearte.yaml
-Id: Uchida16104.Crearte
-Name: Crearte
-Publisher: Uchida16104
-Version: ${{ needs.setup.outputs.version_nov }}
-License: MIT
-Installers:
-  - Arch: x64
-    Url: https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte-installer.exe
-    Sha256: "${{ steps.sha.outputs.sha256 }}"
-InstallerType: exe
-EOF
+          echo "Id: Uchida16104.Crearte" > winget/crearte.yaml
+          echo "Name: Crearte" >> winget/crearte.yaml
+          echo "Publisher: Uchida16104" >> winget/crearte.yaml
+          echo "Version: ${{ needs.setup.outputs.version_nov }}" >> winget/crearte.yaml
+          echo "License: MIT" >> winget/crearte.yaml
+          echo "Installers:" >> winget/crearte.yaml
+          echo "  - Arch: x64" >> winget/crearte.yaml
+          echo "    Url: https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte-installer.exe" >> winget/crearte.yaml
+          echo "    Sha256: ${{ steps.sha.outputs.sha256 }}" >> winget/crearte.yaml
+          echo "InstallerType: exe" >> winget/crearte.yaml
       - uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.setup.outputs.version }}
@@ -75,19 +73,16 @@ EOF
       - name: Create Formula
         run: |
           mkdir -p formula
-          cat <<EOF > formula/crearte.rb
-class Crearte < Formula
-  desc "Generative graphical music score tool"
-  homepage "https://github.com/Uchida16104/Crearte"
-  url "https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte.tar.gz"
-  sha256 "${{ steps.sha.outputs.sha256 }}"
-  license "MIT"
-
-  def install
-    bin.install "scripts/crearte-cli.sh" => "crearte"
-  end
-end
-EOF
+          echo "class Crearte < Formula" > formula/crearte.rb
+          echo "  desc \"Generative graphical music score tool\"" >> formula/crearte.rb
+          echo "  homepage \"https://github.com/Uchida16104/Crearte\"" >> formula/crearte.rb
+          echo "  url \"https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte.tar.gz\"" >> formula/crearte.rb
+          echo "  sha256 \"${{ steps.sha.outputs.sha256 }}\"" >> formula/crearte.rb
+          echo "  license \"MIT\"" >> formula/crearte.rb
+          echo "  def install" >> formula/crearte.rb
+          echo "    bin.install \"scripts/crearte-cli.sh\" => \"crearte\"" >> formula/crearte.rb
+          echo "  end" >> formula/crearte.rb
+          echo "end" >> formula/crearte.rb
       - uses: actions/checkout@v3
         with:
           repository: Uchida16104/homebrew-crearte
@@ -95,11 +90,12 @@ EOF
           path: taprepo
       - name: Update Homebrew tap
         run: |
+          mkdir -p taprepo/Formula
           cp formula/crearte.rb taprepo/Formula/crearte.rb
           cd taprepo
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add .
+          git add Formula/crearte.rb
           git commit -m "Update crearte.rb"
           git push origin main
       - uses: softprops/action-gh-release@v1
@@ -120,15 +116,13 @@ EOF
       - name: Create control file
         run: |
           mkdir -p pkg/DEBIAN
-          cat <<EOF > pkg/DEBIAN/control
-Package: crearte
-Version: ${{ needs.setup.outputs.version_nov }}
-Section: utils
-Priority: optional
-Architecture: amd64
-Maintainer: Uchida16104 <github@users.noreply.github.com>
-Description: Visual music score generator
-EOF
+          echo "Package: crearte" > pkg/DEBIAN/control
+          echo "Version: ${{ needs.setup.outputs.version_nov }}" >> pkg/DEBIAN/control
+          echo "Section: utils" >> pkg/DEBIAN/control
+          echo "Priority: optional" >> pkg/DEBIAN/control
+          echo "Architecture: amd64" >> pkg/DEBIAN/control
+          echo "Maintainer: Uchida16104 <github@users.noreply.github.com>" >> pkg/DEBIAN/control
+          echo "Description: Visual music score generator" >> pkg/DEBIAN/control
       - name: Build .deb
         run: dpkg-deb --build pkg crearte_${{ needs.setup.outputs.version_nov }}_amd64.deb
       - uses: softprops/action-gh-release@v1
