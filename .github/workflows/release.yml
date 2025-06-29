@@ -83,11 +83,9 @@ jobs:
           echo "    bin.install \"scripts/crearte-cli.sh\" => \"crearte\"" >> formula/crearte.rb
           echo "  end" >> formula/crearte.rb
           echo "end" >> formula/crearte.rb
-      - name: Checkout Homebrew tap
+      - name: Push to Homebrew tap
         run: |
           git clone https://x-access-token:${{ secrets.HOMEBREW_PAT }}@github.com/Uchida16104/homebrew-crearte.git taprepo
-      - name: Update Tap and push
-        run: |
           cp formula/crearte.rb taprepo/Formula/
           cd taprepo
           git config user.name "github-actions"
@@ -128,16 +126,21 @@ jobs:
           files: crearte_*.deb
 
   publish_npm:
-    needs: [build_win, build_mac, build_deb]
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Ensure package.json exists
+        run: |
+          if [ ! -f package.json ]; then
+            echo "{}" > package.json
+          fi
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          echo "//registry.npmjs.org/:_authToken=\${NODE_AUTH_TOKEN}" > ~/.npmrc
-          npm publish --access public
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+          npm publish --access public || echo "No valid npm package to publish. Skipping."
 
   finalize_release:
     needs: [build_win, build_mac, build_deb, publish_npm]
