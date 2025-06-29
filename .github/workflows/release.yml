@@ -131,10 +131,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Ensure package.json exists
+      - name: Create dummy package.json (if not present)
         run: |
           if [ ! -f package.json ]; then
-            echo '{"name":"crearte","version":"${{ needs.setup.outputs.version_nov }}","main":"index.js"}' > package.json
+            echo '{
+              "name": "crearte",
+              "version": "${{ needs.setup.outputs.version_nov }}",
+              "description": "Generative graphical music score tool",
+              "main": "index.js",
+              "license": "MIT",
+              "scripts": {
+                "start": "node index.js"
+              }
+            }' > package.json
+            echo 'console.log("Crearte CLI Placeholder");' > index.js
           fi
       - name: Publish to npm
         env:
@@ -157,5 +167,5 @@ jobs:
             - 🪟 Winget Package (.exe)
             - 🍏 Homebrew Tap (Formula)
             - 🐧 Linux DEB Package
-            - 📦 GitHub Packages (npm)
+            - 📦 npm Package (npmjs.com)
           draft: false
