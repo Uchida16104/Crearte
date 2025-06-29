@@ -1,6 +1,6 @@
 {
   "name": "@Uchida16104/crearte",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Crearte is software that helps to create musical scores using music generated from images and poems.",
   "main": "./crearte/hydra/script.cjs",
   "bin": {
