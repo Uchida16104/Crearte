@@ -73,21 +73,22 @@ jobs:
       - name: Create Formula
         run: |
           mkdir -p formula
-          echo "class Crearte < Formula" > formula/crearte.rb
-          echo "  desc \"Generative graphical music score tool\"" >> formula/crearte.rb
-          echo "  homepage \"https://github.com/Uchida16104/Crearte\"" >> formula/crearte.rb
-          echo "  url \"https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte.tar.gz\"" >> formula/crearte.rb
-          echo "  sha256 \"${{ steps.sha.outputs.sha256 }}\"" >> formula/crearte.rb
-          echo "  license \"MIT\"" >> formula/crearte.rb
-          echo "  def install" >> formula/crearte.rb
-          echo "    bin.install \"scripts/crearte-cli.sh\" => \"crearte\"" >> formula/crearte.rb
-          echo "  end" >> formula/crearte.rb
-          echo "end" >> formula/crearte.rb
-      - uses: actions/checkout@v3
-        with:
-          repository: Uchida16104/homebrew-crearte
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: taprepo
+          cat <<EOF > formula/crearte.rb
+class Crearte < Formula
+  desc "Generative graphical music score tool"
+  homepage "https://github.com/Uchida16104/Crearte"
+  url "https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte.tar.gz"
+  sha256 "${{ steps.sha.outputs.sha256 }}"
+  license "MIT"
+
+  def install
+    bin.install "scripts/crearte-cli.sh" => "crearte"
+  end
+end
+EOF
+      - name: Checkout Homebrew tap repo manually
+        run: |
+          git clone https://x-access-token:${{ secrets.HOMEBREW_PAT }}@github.com/Uchida16104/homebrew-crearte.git taprepo
       - name: Update Homebrew tap
         run: |
           mkdir -p taprepo/Formula
