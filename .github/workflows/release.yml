@@ -44,7 +44,7 @@ License: MIT
 Installers:
   - Arch: x64
     Url: https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte-installer.exe
-    Sha256: ${{ steps.sha.outputs.sha256 }}
+    Sha256: "${{ steps.sha.outputs.sha256 }}"
 InstallerType: exe
 EOF
       - uses: softprops/action-gh-release@v1
