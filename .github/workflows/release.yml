@@ -92,6 +92,7 @@ jobs:
           git config user.email "github-actions@github.com"
           git add Formula/crearte.rb
           git commit -m "Update crearte.rb"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Uchida16104/homebrew-crearte.git
           git push origin main
       - uses: softprops/action-gh-release@v1
         with:
