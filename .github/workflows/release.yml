@@ -25,72 +25,112 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Download Windows Installer
+        run: |
+          mkdir -p output
+          curl -L -o output/crearte-installer.exe https://github.com/Uchida16104/Crearte/raw/refs/heads/main/crearte/bin/windows-amd64/bin.exe
+      - name: Calculate SHA256
+        id: sha
+        run: echo "sha256=$(sha256sum output/crearte-installer.exe | cut -d ' ' -f 1)" >> $GITHUB_OUTPUT
       - name: Create Winget YAML
         run: |
           mkdir -p winget
-          echo "Id: Uchida16104.Crearte" > winget/crearte.yaml
-          echo "Name: Crearte" >> winget/crearte.yaml
-          echo "Publisher: Uchida16104" >> winget/crearte.yaml
-          echo "Version: ${{ needs.setup.outputs.version_nov }}" >> winget/crearte.yaml
-          echo "License: MIT" >> winget/crearte.yaml
-          echo "Installers:" >> winget/crearte.yaml
-          echo "  - Arch: x64" >> winget/crearte.yaml
-          echo "    Url: https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte-installer.exe" >> winget/crearte.yaml
-          echo "    Sha256: ENTER_SHA256_HERE" >> winget/crearte.yaml
-          echo "InstallerType: exe" >> winget/crearte.yaml
+          cat <<EOF > winget/crearte.yaml
+Id: Uchida16104.Crearte
+Name: Crearte
+Publisher: Uchida16104
+Version: ${{ needs.setup.outputs.version_nov }}
+License: MIT
+Installers:
+  - Arch: x64
+    Url: https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte-installer.exe
+    Sha256: ${{ steps.sha.outputs.sha256 }}
+InstallerType: exe
+EOF
       - uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.setup.outputs.version }}
-          files: winget/crearte.yaml
+          files: |
+            output/crearte-installer.exe
+            winget/crearte.yaml
 
   build_mac:
     needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Setup Homebrew
+      - name: Download CLI script
         run: |
-          echo "HOMEBREW_NO_INSTALL_FROM_API=1" >> $GITHUB_ENV
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
+          mkdir -p scripts
+          curl -L -o scripts/crearte-cli.sh https://raw.githubusercontent.com/Uchida16104/Crearte/refs/heads/main/scripts/install.sh
+          chmod +x scripts/crearte-cli.sh
+      - name: Create tar.gz
+        run: |
+          mkdir -p tarbuild/crearte
+          cp -r scripts tarbuild/crearte/
+          tar -czf crearte.tar.gz -C tarbuild crearte
+      - name: Calculate SHA256
+        id: sha
+        run: echo "sha256=$(shasum -a 256 crearte.tar.gz | cut -d ' ' -f 1)" >> $GITHUB_OUTPUT
       - name: Create Formula
         run: |
           mkdir -p formula
-          echo "class Crearte < Formula" > formula/crearte.rb
-          echo "  desc \"Generative graphical music score tool\"" >> formula/crearte.rb
-          echo "  homepage \"https://github.com/Uchida16104/Crearte\"" >> formula/crearte.rb
-          echo "  url \"https://github.com/Uchida16104/Crearte/archive/refs/tags/${{ needs.setup.outputs.version }}.tar.gz\"" >> formula/crearte.rb
-          echo "  sha256 \"ENTER_SHA256_HERE\"" >> formula/crearte.rb
-          echo "  license \"MIT\"" >> formula/crearte.rb
-          echo "" >> formula/crearte.rb
-          echo "  def install" >> formula/crearte.rb
-          echo "    bin.install \"scripts/crearte-cli.sh\" => \"crearte\"" >> formula/crearte.rb
-          echo "  end" >> formula/crearte.rb
-          echo "end" >> formula/crearte.rb
+          cat <<EOF > formula/crearte.rb
+class Crearte < Formula
+  desc "Generative graphical music score tool"
+  homepage "https://github.com/Uchida16104/Crearte"
+  url "https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte.tar.gz"
+  sha256 "${{ steps.sha.outputs.sha256 }}"
+  license "MIT"
+
+  def install
+    bin.install "scripts/crearte-cli.sh" => "crearte"
+  end
+end
+EOF
+      - uses: actions/checkout@v3
+        with:
+          repository: Uchida16104/homebrew-crearte
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: taprepo
+      - name: Update Homebrew tap
+        run: |
+          cp formula/crearte.rb taprepo/Formula/crearte.rb
+          cd taprepo
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          git commit -m "Update crearte.rb"
+          git push origin main
       - uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.setup.outputs.version }}
-          files: formula/crearte.rb
+          files: crearte.tar.gz
 
   build_deb:
     needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Build .deb package
+      - name: Download installer
         run: |
-          mkdir -p pkg/DEBIAN pkg/usr/local/bin
-          echo '#!/bin/bash' > pkg/usr/local/bin/crearte
-          echo 'echo "Crearte installed!"' >> pkg/usr/local/bin/crearte
+          mkdir -p pkg/usr/local/bin
+          curl -L -o pkg/usr/local/bin/crearte https://raw.githubusercontent.com/Uchida16104/Crearte/refs/heads/main/scripts/install.sh
           chmod +x pkg/usr/local/bin/crearte
-          echo "Package: crearte" > pkg/DEBIAN/control
-          echo "Version: ${{ needs.setup.outputs.version_nov }}" >> pkg/DEBIAN/control
-          echo "Section: utils" >> pkg/DEBIAN/control
-          echo "Priority: optional" >> pkg/DEBIAN/control
-          echo "Architecture: amd64" >> pkg/DEBIAN/control
-          echo "Maintainer: Uchida16104 <github@users.noreply.github.com>" >> pkg/DEBIAN/control
-          echo "Description: Visual music score generator" >> pkg/DEBIAN/control
-          dpkg-deb --build pkg crearte_${{ needs.setup.outputs.version_nov }}_amd64.deb
+      - name: Create control file
+        run: |
+          mkdir -p pkg/DEBIAN
+          cat <<EOF > pkg/DEBIAN/control
+Package: crearte
+Version: ${{ needs.setup.outputs.version_nov }}
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: Uchida16104 <github@users.noreply.github.com>
+Description: Visual music score generator
+EOF
+      - name: Build .deb
+        run: dpkg-deb --build pkg crearte_${{ needs.setup.outputs.version_nov }}_amd64.deb
       - uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.setup.outputs.version }}
@@ -107,8 +147,8 @@ jobs:
           name: "Crearte ${{ needs.setup.outputs.version }}"
           body: |
             ✅ Automated multi-platform release of Crearte:
-            - 🪟 Winget Package
-            - 🍏 Homebrew Formula
-            - 🐧 .deb Package
-            - ☁️ GitHub Packages (optional)
+            - 🪟 Winget Package (.exe)
+            - 🍏 Homebrew Tap (Formula)
+            - 🐧 Linux DEB Package
+            - ☁️ GitHub Packages (WIP)
           draft: false
