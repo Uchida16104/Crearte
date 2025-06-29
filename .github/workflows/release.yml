@@ -83,13 +83,12 @@ jobs:
           echo "    bin.install \"scripts/crearte-cli.sh\" => \"crearte\"" >> formula/crearte.rb
           echo "  end" >> formula/crearte.rb
           echo "end" >> formula/crearte.rb
-      - name: Checkout Homebrew tap repo
+      - name: Checkout Homebrew tap
         run: |
           git clone https://x-access-token:${{ secrets.HOMEBREW_PAT }}@github.com/Uchida16104/homebrew-crearte.git taprepo
-      - name: Update Homebrew tap
+      - name: Update Tap and push
         run: |
-          mkdir -p taprepo/Formula
-          cp formula/crearte.rb taprepo/Formula/crearte.rb
+          cp formula/crearte.rb taprepo/Formula/
           cd taprepo
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
@@ -128,8 +127,20 @@ jobs:
           tag_name: ${{ needs.setup.outputs.version }}
           files: crearte_*.deb
 
-  finalize_release:
+  publish_npm:
     needs: [build_win, build_mac, build_deb]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          echo "//registry.npmjs.org/:_authToken=\${NODE_AUTH_TOKEN}" > ~/.npmrc
+          npm publish --access public
+
+  finalize_release:
+    needs: [build_win, build_mac, build_deb, publish_npm]
     runs-on: ubuntu-latest
     steps:
       - name: Final release
@@ -142,5 +153,5 @@ jobs:
             - 🪟 Winget Package (.exe)
             - 🍏 Homebrew Tap (Formula)
             - 🐧 Linux DEB Package
-            - ☁️ GitHub Packages (WIP)
+            - 📦 GitHub Packages (npm)
           draft: false
