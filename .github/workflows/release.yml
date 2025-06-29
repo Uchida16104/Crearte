@@ -91,8 +91,7 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add Formula/crearte.rb
-          git commit -m "Update crearte.rb"
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Uchida16104/homebrew-crearte.git
+          git commit -m "Update crearte.rb" || echo "No changes to commit"
           git push origin main
       - uses: softprops/action-gh-release@v1
         with:
@@ -134,7 +133,7 @@ jobs:
       - name: Ensure package.json exists
         run: |
           if [ ! -f package.json ]; then
-            echo "{}" > package.json
+            echo '{"name":"crearte","version":"${{ needs.setup.outputs.version_nov }}","main":"index.js"}' > package.json
           fi
       - name: Publish to npm
         env:
