@@ -12,7 +12,6 @@
       background-color: black;
       color: white;
     }
-
     header {
       display: flex;
       justify-content: space-between;
@@ -21,65 +20,54 @@
       padding: 1em;
       position: relative;
     }
-
     .logo {
       position: absolute;
       top: 1em;
       left: 1em;
       height: 100px;
-      mix-blend-mode: darken;
     }
-
     .describe {
       width: 100%;
       text-align: center;
-      pointer-events: none; /* avoid blocking logo clicks */
+      pointer-events: none;
     }
-
     .slideshow {
       width: 100%;
       height: 300px;
       overflow: hidden;
       position: relative;
     }
-
     .slides {
       display: flex;
       width: 200%;
       height: 100%;
       animation: slide 15s infinite;
     }
-
     .slides img {
       width: 100%;
       object-fit: cover;
       opacity: 0.7;
     }
-
     @keyframes slide {
       0% { margin-left: 0%; }
       50% { margin-left: -100%; }
       100% { margin-left: 0%; }
     }
-
     .main {
       padding: 2em;
     }
-
     .footer {
       background-color: #111;
       text-align: center;
       padding: 1em;
       font-size: 0.9em;
     }
-
     a {
       color: #6cf;
       text-decoration: none;
     }
-
     img.github {
-      width: 10%;
+      width: 5%;
       mix-blend-mode: darken;
     }
   </style>
@@ -92,19 +80,16 @@
       <p>A creative musical score generation tool using Processing & MIDI</p>
     </div>
   </header>
-
   <div class="slideshow">
     <div class="slides">
       <img src="https://raw.githubusercontent.com/Uchida16104/Crearte/refs/heads/main/output_full_score.png" alt="Slide 1" />
       <img src="https://repository-images.githubusercontent.com/1008387498/0594e8de-210c-4021-9d7a-927c006baee8" alt="Slide 2" />
     </div>
   </div>
-
   <div class="main">
     <a href="https://www.npmjs.com/package/crearte" target="_blank">
       <img src="https://img.shields.io/npm/v/crearte.svg" alt="npm badge" />
     </a>
-
     <h2>What is Crearte?</h2>
     <p>Crearte is software that helps to create musical scores using music generated from images and poems. The etymology of Crearte comes from the combination of "create" and "art". The directory contains sample .mid files, .wav files, .png files, and .txt files. Features are the following:</p>
     <ul>
@@ -112,14 +97,13 @@
       <li>It uses simple shapes and math to create graphic scores.</li>
       <li>You can also move your body to make sound in real time.</li>
     </ul>
-
     <h2>Getting Started</h2>
     <p>Install it via npm or homebrew and start creating generative visuals:</p>
     <pre><code>npm install crearte</code></pre>
     <p>or</p>
     <pre><code>brew install uchida16104/crearte/crearte</code></pre>
   </div>
-
+  <h2><a href="https://uchida16104.github.io/Crearte/hydra-processing-bridge">Launch Demo</a></h2>
   <div class="footer">
     <a href="https://github.com/Uchida16104/Crearte" target="_blank">
       <img class="github" src="https://icon2.cleanpng.com/20180530/ywr/kisspng-github-computer-icons-directory-5b0ec64b102792.7107546015276949230662.jpg" alt="GitHub icon" />
