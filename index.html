@@ -1,7 +1,92 @@
-<p>&nbsp;</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crearte - Musical Score Creator</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: black;
+      color: white;
+    }
+    header {
+      text-align: center;
+      padding: 1em;
+      background-color: #111;
+    }
+    .slideshow {
+      width: 100%;
+      height: 300px;
+      overflow: hidden;
+      position: relative;
+    }
+    .slides {
+      display: flex;
+      width: 300%;
+      height: 100%;
+      animation: slide 15s infinite;
+    }
+    .slides img {
+      width: 100%;
+      object-fit: cover;
+      opacity: 0.7;
+    }
+    @keyframes slide {
+      0% { margin-left: 0%; }
+      33% { margin-left: -100%; }
+      66% { margin-left: -200%; }
+      100% { margin-left: 0%; }
+    }
+    .main {
+      display: flex;
+    }
+    .sidebar {
+      width: 250px;
+      background: #222;
+      padding: 1em;
+    }
+    .accordion {
+      background-color: #333;
+      color: white;
+      cursor: pointer;
+      padding: 1em;
+      border: none;
+      text-align: left;
+      width: 100%;
+      outline: none;
+      transition: 0.4s;
+    }
+    .panel {
+      padding: 0 1em;
+      display: none;
+      background-color: #444;
+    }
+    .accordion.active + .panel {
+      display: block;
+    }
+    .content {
+      flex: 1;
+      padding: 2em;
+    }
+    .footer {
+      background-color: #111;
+      text-align: center;
+      padding: 1em;
+      font-size: 0.9em;
+    }
+    a {
+      color: #6cf;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
 <header>
 <h1>Crearte</h1>
-<p>A creative musical score generation tool using Processing &amp; MIDI</p>
+<p>A creative musical score generation tool using Processing & MIDI</p>
 </header>
 <div class="slideshow">
 <div class="slides"><img src="https://raw.githubusercontent.com/Uchida16104/Crearte/refs/heads/main/output_full_score.png" alt="Slide 1" /> <img src="https://repository-images.githubusercontent.com/1008387498/0594e8de-210c-4021-9d7a-927c006baee8" alt="Slide 2" /></div>
@@ -46,3 +131,15 @@
 <div class="footer">
 <h5>2025 © Hirotoshi Uchida</h5>
 </div>
+<script>
+    const acc = document.querySelectorAll(".accordion");
+    acc.forEach(button => {
+      button.addEventListener("click", () => {
+        button.classList.toggle("active");
+        const panel = button.nextElementSibling;
+        panel.style.display = panel.style.display === "block" ? "none" : "block";
+      });
+    });
+  </script>
+</body>
+</html>
