@@ -8,6 +8,9 @@
   <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/Uchida16104/Crearte/refs/heads/main/Crearte.ico" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
+    * {
+      scroll-behavior: smooth;
+    }
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -72,6 +75,9 @@
       width: 5%;
       mix-blend-mode: darken;
     }
+    .gallery {
+      width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -86,6 +92,7 @@
     <div class="slides">
       <img src="https://raw.githubusercontent.com/Uchida16104/Crearte/refs/heads/main/output_full_score.png" alt="Slide 1" />
       <img src="https://repository-images.githubusercontent.com/1008387498/0594e8de-210c-4021-9d7a-927c006baee8" alt="Slide 2" />
+      <img src="https://raw.githubusercontent.com/Uchida16104/Crearte/refs/heads/main/input.png" alt="Slide 3" />
     </div>
   </div>
   <div class="main">
@@ -93,19 +100,52 @@
       <img src="https://img.shields.io/npm/v/crearte.svg" alt="npm badge" />
     </a>
     <h2>What is Crearte?</h2>
-    <p>Crearte is software that helps to create musical scores using music generated from images and poems. The etymology of Crearte comes from the combination of "create" and "art". The directory contains sample .mid files, .wav files, .png files, and .txt files. Features are the following:</p>
+    <p>Crearte is software that helps to create musical scores using music generated from images and poems. The etymology of Crearte comes from the combination of "create" and "art". The directory contains sample .mid files, .wav files, .png files, and .txt files.</p>
+    <h2>Features</h2>
     <ul>
       <li>It can import images, poems, and dances into music.</li>
       <li>It uses simple shapes and math to create graphic scores.</li>
       <li>You can also move your body to make sound in real time.</li>
     </ul>
-    <h2>Getting Started</h2>
+    <h2>Requirements</h2>
+    <ul>
+      <li>Python</li>
+      <li>Java / Processing</li>
+      <li>SuperCollider</li>
+      <li>Node.js</li>
+      <li>Browser software</li>
+    </ul>
+    <h2 id="install">Installation</h2>
     <p>Install it via <a href="https://www.npmjs.com/package/crearte">npm</a> (stable way) or <a href="https://github.com/Uchida16104/homebrew-crearte">homebrew</a> and start creating generative visuals:</p>
     <pre><code>npm install crearte</code></pre>
     <p>or</p>
     <pre><code>brew install uchida16104/crearte/crearte</code></pre>
+    <p>or</p>
+    <p><a href="https://github.com/Uchida16104/Crearte/archive/refs/heads/main.zip">download</a></p>
+    <h2>Get Started</h2>
+    <ol>
+      <li>Download Crearte the step <a href="#install">above</a>.</li>
+      <li>Unzip downloaded file and rename the directory to "crearte".</li>
+      <li>Open your terminal.</li>
+      <li><pre><code>cd crearte</code></pre></li>
+      <li><pre><code>source scripts/install.sh</code></pre>(First time)</li>
+      <li><pre><code>python3 -m venv venv</code></pre></li>
+      <li><pre><code>source venv/bin/activate</code></pre></li>
+      <li><pre><code>open crearte/hydra/launch.sh</code></pre></li>
+      <li>Edit and run script.js on <a href="https://hydra.ojack.xyz">hydra</a></li>
+      <li>Save and generate input.png from hydra by screencap() function</li>
+      <li>Move input.png to Crearte directory</li>
+      <li>Edit and save image_notes.txt and gesture_notes.txt</li>
+      <li><pre><code>python3 image2score/image2score.py</code></pre></li>
+      <li><pre><code>python3 text2midi/text2midi.py</code></pre></li>
+      <li>run crearte/bin/crearte.pde</li>
+      <li><pre><code>python3 crearte/converter/convert_midi_to_txt.py</code></pre></li>
+      <li>Perform with crearte/player/player.scd, hydra-processing-bridge/index.html, and score_output.mid.</li>
+    </ol>
     <h2><a href="https://uchida16104.github.io/Crearte/hydra-processing-bridge">Launch Demo</a></h2>
     <p>It's available for use immediately.</p>
+    <h2>Gallery</h2>
+    <img class="gallery" src="https://raw.githubusercontent.com/Uchida16104/Crearte/refs/heads/main/output_full_score.png" alt="Gallery" />
   </div>
   <div class="footer">
     <a href="https://github.com/Uchida16104/Crearte" target="_blank">
