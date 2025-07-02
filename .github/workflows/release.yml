@@ -10,7 +10,7 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
+  IMAGE_NAME: ghcr.io/uchida16104/crearte
 
 jobs:
   setup:
@@ -32,11 +32,11 @@ jobs:
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Build Docker image
-        run: docker build -t ${{ env.IMAGE_NAME }}:${{ needs.setup.outputs.version }} .
+        run: docker build -t ${{ env.IMAGE_NAME }}:${{ needs.setup.outputs.version_nov }} .
       - name: Push Docker image
         run: |
-          docker push ${{ env.IMAGE_NAME }}:${{ needs.setup.outputs.version }}
-          docker tag ${{ env.IMAGE_NAME }}:${{ needs.setup.outputs.version }} ${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.IMAGE_NAME }}:${{ needs.setup.outputs.version_nov }}
+          docker tag ${{ env.IMAGE_NAME }}:${{ needs.setup.outputs.version_nov }} ${{ env.IMAGE_NAME }}:latest
           docker push ${{ env.IMAGE_NAME }}:latest
 
   build_maven:
@@ -48,13 +48,13 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-          server-id: github
-          settings-path: ${{ github.workspace }}
+      - name: Setup Maven settings
+        run: |
+          mkdir -p ~/.m2
+          echo '<settings><servers><server><id>github</id><username>${{ github.actor }}</username><password>${{ secrets.GITHUB_TOKEN }}</password></server></servers></settings>' > ~/.m2/settings.xml
       - name: Publish Maven
         run: mvn deploy -DskipTests
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+        
   build_pypi:
     needs: setup
     runs-on: ubuntu-latest
