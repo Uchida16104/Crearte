@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="crearte",
-    version="2.6.0",
+    version="2.7.0",
     description="Visual Music Score Generator - Python CLI",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
