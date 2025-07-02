@@ -1,0 +1,20 @@
+await loadScript("https://nodegl.glitch.me/function-list.js");
+src(o0)
+.shift("cos(st.x/time)", "sin(st.y/time)", "sin(st.y/time)/cos(st.x/time)")
+.hue("sin(st.x/time)+cos(st.y/time)")
+.saturate("sin(st.y/time)-cos(st.x/time)")
+.brightness("cos(st.y/time)*sin(st.x/time)")
+.contrast("sin(st.y/time)+cos(st.x/time)")
+.crystal()
+.fisheye()
+.echo()
+.chorus()
+.vibrato()
+.ringModulate()
+.modulateRingModulator(o0)
+.layer(repeatoperator("modulateKaleid", () => osc(1).rotate(Math.PI / 2).scale(1.01), 2, osc(1))
+.sub(repeatoperator("modulateRotate", () => osc(1).rotate(Math.PI / 2).scale(1.01), 3, osc(1))
+.mult(repeatoperator("modulatePixelate", () => osc(1).rotate(Math.PI / 2).scale(1.01), 5, osc(1))
+.mask(repeatoperator("modulateScale", () =>osc(1).rotate(Math.PI / 2).scale(1.01), 8, osc(1))))))
+.out();
+screencap();

@@ -1,0 +1,30 @@
+{
+  "name": "crearte",
+  "version": "2.4.0",
+  "description": "Crearte is software that helps to create musical scores using music generated from images and poems.",
+  "main": "./crearte/hydra/script.cjs",
+  "bin": {
+    "lumos": "./crearte/hydra/script.cjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Uchida16104/Crearte.git"
+  },
+  "publishConfig": {
+    "@Uchida16104:registry": "https://npm.pkg.github.com"
+  },
+  "bugs": {
+    "url": "https://github.com/Uchida16104/Crearte/issues"
+  },
+  "homepage": "https://uchida16104.github.io/Crearte/hydra-processing-bridge",
+  "author": "Hirotoshi Uchida",
+  "license": "MIT",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node ./crearte/hydra/script.cjs && rm -f package.json && refresh",
+    "test": "echo 'Running crearte...' && node ./crearte/hydra/script.cjs"
+  },
+  "keywords": [
+    "software"
+  ]
+}
