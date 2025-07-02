@@ -1,6 +1,7 @@
 # Crearte
 
 [![npm version](https://img.shields.io/npm/v/crearte.svg)](https://www.npmjs.com/package/crearte)
+[![pypi version](https://img.shields.io/pypi/v/crearte.svg)](https://pypi.org/project/crearte)
 
 ![Crearte](https://github.com/Uchida16104/Crearte/blob/5ed6023b7a236017dd8bdbee3ec26b7434932192/Crearte.png "Crearte")
 Crearte is software that helps to create musical scores using music generated from images and poems. The etymology of Crearte comes from the combination of "create" and "art".The directory contains sample .mid files, .wav files, .png files, and .txt files.
