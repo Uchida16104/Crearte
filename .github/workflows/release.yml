@@ -14,7 +14,7 @@ env:
   IMAGE_NAME_GHCR: ghcr.io/uchida16104/crearte
   IMAGE_NAME_DOCKERHUB: uchida16104/crearte
   SONATYPE_URL: https://oss.sonatype.org/service/local/staging/deploy/maven2/
-  GPG_KEY_ID:　D4891229439F8DFCD8787EE5887FAB3A39A0B82D
+  GPG_KEY_ID: D4891229439F8DFCD8787EE5887FAB3A39A0B82D
   MAVEN_REPO_ID: github
   MAVEN_REPO_URL: https://maven.pkg.github.com/Uchida16104/Crearte
   MAVEN_CLI_OPTS: >-
