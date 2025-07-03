@@ -1,10 +1,10 @@
 {
   "name": "crearte",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "description": "Crearte is software that helps to create musical scores using music generated from images and poems.",
   "main": "./crearte/hydra/script.cjs",
   "bin": {
-    "lumos": "./crearte/hydra/script.cjs"
+    "crearte": "./crearte/hydra/script.cjs"
   },
   "repository": {
     "type": "git",
