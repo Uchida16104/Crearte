@@ -64,6 +64,9 @@
     .main {
       padding: 2em;
     }
+    .badge {
+      display: flex;
+    }
     .footer {
       background-color: #111;
       text-align: center;
@@ -99,9 +102,14 @@
     </div>
   </div>
   <div class="main">
-    <a href="https://www.npmjs.com/package/crearte" target="_blank">
-      <img src="https://img.shields.io/npm/v/crearte.svg" alt="npm badge" />
-    </a>
+    <div class="badge">
+      <a href="https://www.npmjs.com/package/crearte" target="_blank">
+        <img src="https://img.shields.io/npm/v/crearte.svg" alt="npm badge" />
+      </a>
+      <a href="https://pypi.org/project/crearte" target="_blank">
+        <img src="https://img.shields.io/pypi/v/crearte.svg" alt="pypi badge" />
+      </a>
+    </div>
     <h2>What is Crearte?</h2>
     <p>Crearte is software that helps to create musical scores using music generated from images and poems. The etymology of Crearte comes from the combination of "create" and "art". The directory contains sample .mid files, .wav files, .png files, and .txt files.</p>
     <h2>Features</h2>
@@ -119,12 +127,15 @@
       <li>Browser software</li>
     </ul>
     <h2 id="install">Installation</h2>
-    <p>Install it via <a href="https://www.npmjs.com/package/crearte">npm</a> (stable way) or <a href="https://github.com/Uchida16104/homebrew-crearte">homebrew</a> and start creating generative visuals:</p>
-    <pre><code>npm install crearte</code></pre>
-    <p>or</p>
-    <pre><code>brew install uchida16104/crearte/crearte</code></pre>
-    <p>or</p>
-    <p><a href="https://github.com/Uchida16104/Crearte/archive/refs/heads/main.zip">download</a></p>
+    <p>Install it via <a href="https://www.npmjs.com/package/crearte">npm</a> (stable way), <a href="https://pypi.org/project/crearte">PyPI</a>, <a href="https://github.com/Uchida16104/Crearte/pkgs/container/crearte">Docker</a>, <a href="https://github.com/Uchida16104/Crearte/packages/2565674">Maven</a>, <a href="https://github.com/Uchida16104/homebrew-crearte">homebrew</a> and start creating generative visuals:</p>
+    <ul>
+      <li><a href="https://www.npmjs.com/package/crearte"><pre><code>npm install crearte</code></pre></a></li>
+      <li><a href="https://pypi.org/project/crearte"><pre><code>pip install crearte</code></pre></a></li>
+      <li><pre><code>brew install uchida16104/crearte/crearte</code></pre></li>
+      <li><a href="https://github.com/Uchida16104/Crearte/pkgs/container/crearte"><pre><code>docker pull ghcr.io/uchida16104/crearte:latest</code></pre></a></li>
+      <li><a href="https://github.com/Uchida16104/Crearte/packages/2565674"><pre><code>mvn install</code></pre></a></li>
+      <li><a href="https://github.com/Uchida16104/Crearte/archive/refs/heads/main.zip">download</a></li>
+    </ul>
     <h2>Get Started</h2>
     <ol>
       <li>Download Crearte the step <a href="#install">above</a>.</li>
