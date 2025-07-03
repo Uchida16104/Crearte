@@ -37,7 +37,7 @@ jobs:
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Log in to DockerHub
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
       - name: Build Docker image
         run: |
           docker build -t ${{ env.IMAGE_NAME_GHCR }}:${{ needs.setup.outputs.version_nov }} .
@@ -165,9 +165,9 @@ jobs:
           EOF
       - name: Create PR to Homebrew Tap Repo
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_PAT: ${{ secrets.HOMEBREW_PAT }}
         run: |
-          git clone https://github.com/${{ env.HOME_BREW_TAP_REPO }} taprepo
+          git clone https://x-access-token:${HOMEBREW_PAT}@github.com/${{ env.HOME_BREW_TAP_REPO }} taprepo
           cd taprepo
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
@@ -216,23 +216,23 @@ jobs:
       - name: Create dummy package.json if missing
         run: |
           if [ ! -f package.json ]; then
-            cat <<EOF > package.json
-            {
-              "name": "crearte",
-              "version": "${{ needs.setup.outputs.version_nov }}",
-              "description": "Generative graphical music score tool",
-              "main": "./crearte/hydra/script.cjs",
-              "license": "MIT",
-              "publishConfig": {
-                "registry": "https://registry.npmjs.org/"
-              },
-              "scripts": {
-                "start": "node ./crearte/hydra/script.cjs"
-              }
-            }
-            EOF
-            echo 'console.log("Crearte CLI Placeholder");' > ./crearte/hydra/script.cjs
+          echo "{" > package.json
+          echo "  \"name\": \"crearte\"," >> package.json
+          echo "  \"version\": \"${{ needs.setup.outputs.version_nov }}\"," >> package.json
+          echo "  \"description\": \"Generative graphical music score tool\"," >> package.json
+          echo "  \"main\": \"./crearte/hydra/script.cjs\"," >> package.json
+          echo "  \"license\": \"MIT\"," >> package.json
+          echo "  \"publishConfig\": {" >> package.json
+          echo "    \"registry\": \"https://registry.npmjs.org/\"" >> package.json
+          echo "  }," >> package.json
+          echo "  \"scripts\": {" >> package.json
+          echo "    \"start\": \"node ./crearte/hydra/script.cjs\"" >> package.json
+          echo "  }" >> package.json
+          echo "}" >> package.json
+          mkdir -p ./crearte/hydra
+          echo 'console.log("Crearte CLI Placeholder");' > ./crearte/hydra/script.cjs
           fi
+
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
