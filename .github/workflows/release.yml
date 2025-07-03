@@ -42,7 +42,10 @@ jobs:
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Log in to DockerHub
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
       - name: Build Docker image
         run: |
           docker build -t ${{ env.IMAGE_NAME_GHCR }}:${{ needs.setup.outputs.version_nov }} .
@@ -91,7 +94,11 @@ jobs:
       - name: Publish Maven
         run: mvn deploy -DskipTests
       - name: Deploy to Maven Central (release profile)
-        run: mvn deploy -P release -DskipTests
+        run: |
+          mvn deploy -Psign-artifacts -DskipTests \
+            -Dgpg.executable=gpg \
+            -Dgpg.keyname=${{ env.GPG_KEY_ID }} \
+            -Dgpg.passphrase=${{ secrets.SIGNING_PASSWORD }}
 
   build_pypi:
     needs: setup
@@ -155,8 +162,12 @@ jobs:
             winget/crearte.yaml
       - name: Submit to winget
         run: |
-          dotnet tool install --global wingetcreate
-          wingetcreate update Uchida16104.Crearte -s https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte-installer.exe --version ${{ needs.setup.outputs.version_nov }} --submit
+          dotnet tool install --global Microsoft.WingetCreate.Cli
+          export PATH="$PATH:/home/runner/.dotnet/tools"
+          wingetcreate update Uchida16104.Crearte \
+            -s https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte-installer.exe \
+            --version ${{ needs.setup.outputs.version_nov }} \
+            --submit
         env:
           WINGET_SUBMIT_TOKEN: ${{ secrets.WINGET_PAT }}
 
