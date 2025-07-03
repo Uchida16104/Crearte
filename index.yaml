@@ -2,16 +2,16 @@ apiVersion: v1
 entries:
   crearte:
   - apiVersion: v2
-    appVersion: 3.2.0
-    created: "2025-07-03T03:27:02.297067713Z"
+    appVersion: 3.3.0
+    created: "2025-07-03T04:10:42.817147913Z"
     description: A generative visual music score tool
-    digest: f7952edf7afb8d46394dc2cb81d01effdd3bcfd44dfd8cc139e668724ce105dd
+    digest: 736b43f6742c000c716a33ff567b4c67c311f4973c2172077cc39af79f21bf53
     maintainers:
     - email: github@users.noreply.github.com
       name: Hirotoshi Uchida
     name: crearte
     type: application
     urls:
-    - https://uchida16104.github.io/Crearte/crearte-3.2.0.tgz
-    version: 3.2.0
-generated: "2025-07-03T03:27:02.29112547Z"
+    - https://uchida16104.github.io/Crearte/crearte-3.3.0.tgz
+    version: 3.3.0
+generated: "2025-07-03T04:10:42.812718889Z"
