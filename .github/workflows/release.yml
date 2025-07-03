@@ -8,19 +8,9 @@ on:
 permissions:
   contents: write
   packages: write
-  pull-requests: write
 
 env:
-  IMAGE_NAME_GHCR: ghcr.io/uchida16104/crearte
-  IMAGE_NAME_DOCKERHUB: uchida16104/crearte
-  SONATYPE_URL: https://oss.sonatype.org/service/local/staging/deploy/maven2/
-  GPG_KEY_ID: D4891229439F8DFCD8787EE5887FAB3A39A0B82D
-  MAVEN_REPO_ID: github
-  MAVEN_REPO_URL: https://maven.pkg.github.com/Uchida16104/Crearte
-  MAVEN_CLI_OPTS: >-
-    -Psign-artifacts -Dgpg.executable=gpg
-    -Dgpg.passphrase=${{ secrets.SIGNING_PASSWORD }}
-  HOME_BREW_TAP_REPO: Uchida16104/homebrew-crearte
+  IMAGE_NAME: ghcr.io/uchida16104/crearte
 
 jobs:
   setup:
@@ -33,36 +23,20 @@ jobs:
         run: |
           echo "version=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
           echo "version_nov=${GITHUB_REF##*/v}" >> $GITHUB_OUTPUT
-
-  build_and_push_docker:
+  build_docker:
     needs: setup
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: actions/checkout@v3
       - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Log in to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push Docker image (GHCR + DockerHub)
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ env.IMAGE_NAME_GHCR }}:${{ needs.setup.outputs.version_nov }}
-            ${{ env.IMAGE_NAME_GHCR }}:latest
-            ${{ env.IMAGE_NAME_DOCKERHUB }}:${{ needs.setup.outputs.version_nov }}
-            ${{ env.IMAGE_NAME_DOCKERHUB }}:latest
-
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Build Docker image
+        run: docker build -t ${{ env.IMAGE_NAME }}:${{ needs.setup.outputs.version_nov }} .
+      - name: Push Docker image
+        run: |
+          docker push ${{ env.IMAGE_NAME }}:${{ needs.setup.outputs.version_nov }}
+          docker tag ${{ env.IMAGE_NAME }}:${{ needs.setup.outputs.version_nov }} ${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.IMAGE_NAME }}:latest
   build_maven:
     needs: setup
     runs-on: ubuntu-latest
@@ -72,36 +46,13 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Import GPG key
-        run: |
-          echo "${{ secrets.SIGNING_KEY }}" | base64 -d | gpg --batch --import
-      - name: Configure Maven
-        run: |
-          mkdir -p ~/.m2
-          echo "<settings>
-            <servers>
-              <server>
-                <id>ossrh</id>
-                <username>${{ secrets.SONATYPE_USERNAME }}</username>
-                <password>${{ secrets.SONATYPE_PASSWORD }}</password>
-              </server>
-            </servers>
-          </settings>" > ~/.m2/settings.xml
-      - name: Deploy to Maven Central
-        run: mvn deploy ${{ env.MAVEN_CLI_OPTS }} -DskipTests -Dgpg.keyname=${{ env.GPG_KEY_ID }} -Dgpg.passphrase=${{ secrets.SIGNING_PASSWORD }}
       - name: Setup Maven settings
         run: |
           mkdir -p ~/.m2
-          echo "<settings><servers><server><id>${{ env.MAVEN_REPO_ID }}</id><username>${{ github.actor }}</username><password>${{ secrets.GITHUB_TOKEN }}</password></server></servers></settings>" > ~/.m2/settings.xml
+          echo '<settings><servers><server><id>github</id><username>${{ github.actor }}</username><password>${{ secrets.GITHUB_TOKEN }}</password></server></servers></settings>' > ~/.m2/settings.xml
       - name: Publish Maven
         run: mvn deploy -DskipTests
-      - name: Deploy to Maven Central (release profile)
-        run: |
-          mvn deploy -Psign-artifacts -DskipTests \
-            -Dgpg.executable=gpg \
-            -Dgpg.keyname=${{ env.GPG_KEY_ID }} \
-            -Dgpg.passphrase=${{ secrets.SIGNING_PASSWORD }}
-
+        
   build_pypi:
     needs: setup
     runs-on: ubuntu-latest
@@ -111,17 +62,15 @@ jobs:
         with:
           python-version: '3.x'
       - run: |
-          pip install --upgrade build twine
+          pip install build twine
           python -m build
           twine upload --repository-url https://upload.pypi.org/legacy/ dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
-
   build_helm:
     needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Package Helm Chart
-        run: |
+      - run: |
           helm package charts/crearte
           helm repo index . --url https://uchida16104.github.io/Crearte
       - uses: peaceiris/actions-gh-pages@v3
@@ -129,7 +78,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .
 
-  build_winget:
+  build_win:
     needs: setup
     runs-on: ubuntu-latest
     steps:
@@ -137,45 +86,30 @@ jobs:
       - name: Download Windows Installer
         run: |
           mkdir -p output
-          curl -L -o output/crearte-installer.exe https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte-installer.exe
+          curl -L -o output/crearte-installer.exe https://github.com/Uchida16104/Crearte/raw/refs/heads/main/crearte/bin/windows-amd64/bin.exe
       - name: Calculate SHA256
         id: sha
-        run: echo "sha256=$(sha256sum output/crearte-installer.exe | cut -d ' ' -f1)" >> $GITHUB_OUTPUT
-      - name: Create Winget Manifest
+        run: echo "sha256=$(sha256sum output/crearte-installer.exe | cut -d ' ' -f 1)" >> $GITHUB_OUTPUT
+      - name: Create Winget YAML
         run: |
           mkdir -p winget
-          cat <<EOF > winget/crearte.yaml
-          Id: Uchida16104.Crearte
-          Name: Crearte
-          Publisher: Uchida16104
-          Version: ${{ needs.setup.outputs.version_nov }}
-          License: MIT
-          Installers:
-            - Arch: x64
-              Url: https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte-installer.exe
-              Sha256: ${{ steps.sha.outputs.sha256 }}
-          InstallerType: exe
-          EOF
+          echo "Id: Uchida16104.Crearte" > winget/crearte.yaml
+          echo "Name: Crearte" >> winget/crearte.yaml
+          echo "Publisher: Uchida16104" >> winget/crearte.yaml
+          echo "Version: ${{ needs.setup.outputs.version_nov }}" >> winget/crearte.yaml
+          echo "License: MIT" >> winget/crearte.yaml
+          echo "Installers:" >> winget/crearte.yaml
+          echo "  - Arch: x64" >> winget/crearte.yaml
+          echo "    Url: https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte-installer.exe" >> winget/crearte.yaml
+          echo "    Sha256: ${{ steps.sha.outputs.sha256 }}" >> winget/crearte.yaml
+          echo "InstallerType: exe" >> winget/crearte.yaml
       - uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.setup.outputs.version }}
           files: |
             output/crearte-installer.exe
             winget/crearte.yaml
-      - name: Install wingetcreate CLI
-        run: |
-          dotnet tool install --global wingetcreate
-          export PATH="$PATH:$HOME/.dotnet/tools"
-      - name: Submit to winget
-        run: |
-          wingetcreate update Uchida16104.Crearte \
-          -s https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte-installer.exe \
-          --version ${{ needs.setup.outputs.version_nov }} \
-          --submit
-        env:
-          WINGET_SUBMIT_TOKEN: ${{ secrets.WINGET_PAT }}
-
-  build_homebrew:
+  build_mac:
     needs: setup
     runs-on: ubuntu-latest
     steps:
@@ -185,7 +119,7 @@ jobs:
           mkdir -p scripts
           curl -L -o scripts/crearte-cli.sh https://raw.githubusercontent.com/Uchida16104/Crearte/refs/heads/main/scripts/install.sh
           chmod +x scripts/crearte-cli.sh
-      - name: Create tarball
+      - name: Create tar.gz
         run: |
           mkdir -p tarbuild/crearte
           cp -r scripts tarbuild/crearte/
@@ -193,60 +127,57 @@ jobs:
       - name: Calculate SHA256
         id: sha
         run: echo "sha256=$(shasum -a 256 crearte.tar.gz | cut -d ' ' -f 1)" >> $GITHUB_OUTPUT
-      - name: Create Homebrew Formula
+      - name: Create Formula
         run: |
           mkdir -p formula
-          cat <<EOF > formula/crearte.rb
-          class Crearte < Formula
-            desc "Generative graphical music score tool"
-            homepage "https://github.com/Uchida16104/Crearte"
-            url "https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte.tar.gz"
-            sha256 "${{ steps.sha.outputs.sha256 }}"
-            license "MIT"
-            def install
-              bin.install "scripts/crearte-cli.sh" => "crearte"
-            end
-          end
-          EOF
-      - name: Create PR to Homebrew Tap Repo
-        env:
-          HOMEBREW_PAT: ${{ secrets.HOMEBREW_PAT }}
+          echo "class Crearte < Formula" > formula/crearte.rb
+          echo "  desc \"Generative graphical music score tool\"" >> formula/crearte.rb
+          echo "  homepage \"https://github.com/Uchida16104/Crearte\"" >> formula/crearte.rb
+          echo "  url \"https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte.tar.gz\"" >> formula/crearte.rb
+          echo "  sha256 \"${{ steps.sha.outputs.sha256 }}\"" >> formula/crearte.rb
+          echo "  license \"MIT\"" >> formula/crearte.rb
+          echo "  def install" >> formula/crearte.rb
+          echo "    bin.install \"scripts/crearte-cli.sh\" => \"crearte\"" >> formula/crearte.rb
+          echo "  end" >> formula/crearte.rb
+          echo "end" >> formula/crearte.rb
+      - name: Push to Homebrew tap
         run: |
-          git clone https://x-access-token:${HOMEBREW_PAT}@github.com/${{ env.HOME_BREW_TAP_REPO }} taprepo
+          git clone https://x-access-token:${{ secrets.HOMEBREW_PAT }}@github.com/Uchida16104/homebrew-crearte.git taprepo
+          cp formula/crearte.rb taprepo/Formula/
           cd taprepo
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          cp ../formula/crearte.rb Formula/
-          git checkout -b update-crearte-${{ needs.setup.outputs.version_nov }}
           git add Formula/crearte.rb
-          git commit -m "Update crearte.rb to version ${{ needs.setup.outputs.version_nov }}"
-          git push origin update-crearte-${{ needs.setup.outputs.version_nov }}
+          git commit -m "Update crearte.rb" || echo "No changes to commit"
+          git push origin main
+      - uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.setup.outputs.version }}
+          files: crearte.tar.gz
 
-  build_debian:
+  build_deb:
     needs: setup
     runs-on: ubuntu-latest
     env:
       DEBIAN_FRONTEND: noninteractive
     steps:
       - uses: actions/checkout@v3
-      - name: Download installer script
+      - name: Download installer
         run: |
           mkdir -p pkg/usr/local/bin
           curl -L -o pkg/usr/local/bin/crearte https://raw.githubusercontent.com/Uchida16104/Crearte/refs/heads/main/scripts/install.sh
           chmod +x pkg/usr/local/bin/crearte
-      - name: Create Debian control file
+      - name: Create control file
         run: |
           mkdir -p pkg/DEBIAN
-          cat <<EOF > pkg/DEBIAN/control
-          Package: crearte
-          Version: ${{ needs.setup.outputs.version_nov }}
-          Section: utils
-          Priority: optional
-          Architecture: amd64
-          Maintainer: Uchida16104 <github@users.noreply.github.com>
-          Description: Visual music score generator
-          EOF
-      - name: Build Debian package
+          echo "Package: crearte" > pkg/DEBIAN/control
+          echo "Version: ${{ needs.setup.outputs.version_nov }}" >> pkg/DEBIAN/control
+          echo "Section: utils" >> pkg/DEBIAN/control
+          echo "Priority: optional" >> pkg/DEBIAN/control
+          echo "Architecture: amd64" >> pkg/DEBIAN/control
+          echo "Maintainer: Uchida16104 <github@users.noreply.github.com>" >> pkg/DEBIAN/control
+          echo "Description: Visual music score generator" >> pkg/DEBIAN/control
+      - name: Build .deb
         run: dpkg-deb --build pkg crearte_${{ needs.setup.outputs.version_nov }}_amd64.deb
       - uses: softprops/action-gh-release@v1
         with:
@@ -258,50 +189,47 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Create dummy package.json if missing
+      - name: Create dummy package.json (if not present)
         run: |
           if [ ! -f package.json ]; then
-          echo "{" > package.json
-          echo "  \"name\": \"crearte\"," >> package.json
-          echo "  \"version\": \"${{ needs.setup.outputs.version_nov }}\"," >> package.json
-          echo "  \"description\": \"Generative graphical music score tool\"," >> package.json
-          echo "  \"main\": \"./crearte/hydra/script.cjs\"," >> package.json
-          echo "  \"license\": \"MIT\"," >> package.json
-          echo "  \"publishConfig\": {" >> package.json
-          echo "    \"registry\": \"https://registry.npmjs.org/\"" >> package.json
-          echo "  }," >> package.json
-          echo "  \"scripts\": {" >> package.json
-          echo "    \"start\": \"node ./crearte/hydra/script.cjs\"" >> package.json
-          echo "  }" >> package.json
-          echo "}" >> package.json
-          mkdir -p ./crearte/hydra
-          echo 'console.log("Crearte CLI Placeholder");' > ./crearte/hydra/script.cjs
+            echo '{
+              "name": "crearte",
+              "version": "${{ needs.setup.outputs.version_nov }}",
+              "description": "Generative graphical music score tool",
+              "main": "index.js",
+              "license": "MIT",
+              "publishConfig": {
+                "registry": "https://registry.npmjs.org/"
+              },
+              "scripts": {
+                "start": "node index.js"
+              }
+            }' > package.json
+            echo 'console.log("Crearte CLI Placeholder");' > index.js
           fi
-
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
           npm publish --access public || echo "No valid npm package to publish. Skipping."
-
   finalize_release:
-    needs: [build_and_push_docker, build_maven, build_pypi, build_helm, build_winget, build_homebrew, build_debian, publish_npm]
+    needs: [build_docker, build_maven, build_pypi, build_helm, build_win, build_mac, build_deb, publish_npm]
     runs-on: ubuntu-latest
     steps:
-      - name: Create GitHub Release Summary
+      - name: Final release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.setup.outputs.version }}
           name: "Crearte ${{ needs.setup.outputs.version }}"
           body: |
             ✅ Automated multi-platform release of Crearte:
-            - 🐳 Docker (GHCR + DockerHub)
-            - ☕ Maven (GitHub Packages / Sonatype)
+            - 🐳 Docker (GHCR)
+            - ☕ Maven (GitHub Packages)
             - 🐍 PyPI (pip install crearte)
-            - ⚓ Helm Chart (GitHub Pages / ArtifactHub)
+            - ⚓ Helm Chart (GitHub Pages)
             - 🪟 Winget Package (.exe)
-            - 🍏 Homebrew Tap (PR created, manual merge required)
+            - 🍏 Homebrew Tap (Formula)
             - 🐧 Linux DEB Package
             - 📦 npm Package (npmjs.com)
           draft: false
