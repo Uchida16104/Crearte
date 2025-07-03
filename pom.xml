@@ -6,7 +6,7 @@
 
   <groupId>com.uchida16104</groupId>
   <artifactId>crearte</artifactId>
-  <version>3.4.0</version>
+  <version>3.5.0</version>
   <packaging>jar</packaging>
 
   <name>Crearte</name>
@@ -40,7 +40,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>3.4.0</version>
+            <version>3.2.8</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
