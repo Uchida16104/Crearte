@@ -160,14 +160,15 @@ jobs:
           files: |
             output/crearte-installer.exe
             winget/crearte.yaml
+      - name: Install wingetcreate CLI
+        run: dotnet tool install --global Microsoft.WingetCreate.Cli
       - name: Submit to winget
         run: |
-          dotnet tool install --global Microsoft.WingetCreate.Cli
           export PATH="$PATH:/home/runner/.dotnet/tools"
           wingetcreate update Uchida16104.Crearte \
-            -s https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte-installer.exe \
-            --version ${{ needs.setup.outputs.version_nov }} \
-            --submit
+          -s https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte-installer.exe \
+          --version ${{ needs.setup.outputs.version_nov }} \
+          --submit
         env:
           WINGET_SUBMIT_TOKEN: ${{ secrets.WINGET_PAT }}
 
