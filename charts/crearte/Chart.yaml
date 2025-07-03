@@ -2,8 +2,8 @@ apiVersion: v2
 name: crearte
 description: A generative visual music score tool
 type: application
-version: 3.5.0
-appVersion: "3.5.0"
+version: 3.6.0
+appVersion: "3.6.0"
 maintainers:
   - name: Hirotoshi Uchida
     email: github@users.noreply.github.com
