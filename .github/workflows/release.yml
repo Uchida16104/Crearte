@@ -90,6 +90,8 @@ jobs:
           echo "<settings><servers><server><id>${{ env.MAVEN_REPO_ID }}</id><username>${{ github.actor }}</username><password>${{ secrets.GITHUB_TOKEN }}</password></server></servers></settings>" > ~/.m2/settings.xml
       - name: Publish Maven
         run: mvn deploy -DskipTests
+      - name: Deploy to Maven Central (release profile)
+        run: mvn deploy -P release -DskipTests
 
   build_pypi:
     needs: setup
