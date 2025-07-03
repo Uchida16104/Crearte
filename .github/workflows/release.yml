@@ -129,6 +129,12 @@ jobs:
           files: |
             output/crearte-installer.exe
             winget/crearte.yaml
+      - name: Submit to winget
+        run: |
+          dotnet tool install --global wingetcreate
+          wingetcreate update Uchida16104.Crearte -s https://github.com/Uchida16104/Crearte/releases/download/${{ needs.setup.outputs.version }}/crearte-installer.exe --version ${{ needs.setup.outputs.version_nov }} --submit
+        env:
+          WINGET_SUBMIT_TOKEN: ${{ secrets.WINGET_PAT }}
 
   build_homebrew:
     needs: setup
