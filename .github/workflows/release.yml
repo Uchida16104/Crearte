@@ -13,8 +13,13 @@ permissions:
 env:
   IMAGE_NAME_GHCR: ghcr.io/uchida16104/crearte
   IMAGE_NAME_DOCKERHUB: uchida16104/crearte
+  SONATYPE_URL: https://oss.sonatype.org/service/local/staging/deploy/maven2/
+  GPG_KEY_ID:　D4891229439F8DFCD8787EE5887FAB3A39A0B82D
   MAVEN_REPO_ID: github
   MAVEN_REPO_URL: https://maven.pkg.github.com/Uchida16104/Crearte
+  MAVEN_CLI_OPTS: >-
+    -Psign-artifacts -Dgpg.executable=gpg
+    -Dgpg.passphrase=${{ secrets.SIGNING_PASSWORD }}
   HOME_BREW_TAP_REPO: Uchida16104/homebrew-crearte
 
 jobs:
@@ -62,6 +67,23 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Import GPG key
+        run: |
+          echo "${{ secrets.SIGNING_KEY }}" | base64 -d | gpg --batch --import
+      - name: Configure Maven
+        run: |
+          mkdir -p ~/.m2
+          echo "<settings>
+            <servers>
+              <server>
+                <id>ossrh</id>
+                <username>${{ secrets.SONATYPE_USERNAME }}</username>
+                <password>${{ secrets.SONATYPE_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>" > ~/.m2/settings.xml
+      - name: Deploy to Maven Central
+        run: mvn deploy ${{ env.MAVEN_CLI_OPTS }} -DskipTests -Dgpg.keyname=${{ env.GPG_KEY_ID }} -Dgpg.passphrase=${{ secrets.SIGNING_PASSWORD }}
       - name: Setup Maven settings
         run: |
           mkdir -p ~/.m2
