@@ -1,9 +1,13 @@
 # Crearte
 
-[![npm version](https://img.shields.io/npm/v/crearte.svg)](https://www.npmjs.com/package/crearte)
+[![GHCR](https://img.shields.io/badge/GHCR-Crearte-blue?logo=docker)](https://github.com/Uchida16104/Crearte/pkgs/container/crearte)
 [![pypi version](https://img.shields.io/pypi/v/crearte.svg)](https://pypi.org/project/crearte)
+[![homebrew](https://img.shields.io/badge/homebrew-crearte-orange?logo=homebrew)](https://github.com/Uchida16104/homebrew-crearte)
+[![Debian](https://img.shields.io/badge/debian-crearte-red?logo=debian)](https://github.com/Uchida16104/Crearte/releases/latest)
+[![npm version](https://img.shields.io/npm/v/crearte.svg)](https://www.npmjs.com/package/crearte)
 
-![Crearte](https://github.com/Uchida16104/Crearte/blob/5ed6023b7a236017dd8bdbee3ec26b7434932192/Crearte.png "Crearte")
+<img src="https://raw.githubusercontent.com/Uchida16104/Crearte/refs/heads/main/Crearte.png" alt="Crearte" />
+
 Crearte is software that helps to create musical scores using music generated from images and poems. The etymology of Crearte comes from the combination of "create" and "art".The directory contains sample .mid files, .wav files, .png files, and .txt files.
 
 ## Features
@@ -35,6 +39,7 @@ Crearte is software that helps to create musical scores using music generated fr
 14. perform with crearte/player/player.scd, hydra-processing-bridge/index.html, and score_output.mid.
 
 ## Completed output file image
-![Score](https://github.com/Uchida16104/Crearte/blob/5858fa8e0603a74b2438edc931317dc218e898a5/output_full_score.png "Score")
+
+<img src="https://raw.githubusercontent.com/Uchida16104/Crearte/refs/heads/main/output_full_score.png" alt="Score" />
 
 Hirotoshi Uchida
